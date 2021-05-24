@@ -4,4 +4,7 @@ python:
   - "3.7.4"
 
 install:
-  - pip install turtle
+  - "pip install turtle"
+
+script:
+  - "Pong_Clone.py"
