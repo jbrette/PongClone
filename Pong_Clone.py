@@ -64,6 +64,21 @@ def genText(speed, color, xCor, yCor, text, alignment, textFont):
 # In[6]:
 
 
+#Changes the scoreboard player names according to whether or not it is PVP or PVE
+def setScoreNames():
+    player1 = 1
+    player2 = 2
+    if (numPlayers < 2):
+        player2 = 0
+    if (numPlayers == 0):
+        player1 = 0
+    playerNames = [player1, player2]    
+    return(playerNames)
+
+
+# In[7]:
+
+
 #Determines Paddle Movements
 #Currently not working due to some strage interaction with onkeypress method
 def paddleMovement(tappedKey):
@@ -102,7 +117,7 @@ def paddleBDown():
     paddleMovement('Down')
 
 
-# In[7]:
+# In[8]:
 
 
 #Determines Ball Movement Speed
@@ -111,7 +126,7 @@ def setBallSpeed(speed):
     ball.dy = speed #Movement on y-axis
 
 
-# In[8]:
+# In[9]:
 
 
 #Limits the Ball Movement Speed to Resonable Levels
@@ -147,7 +162,7 @@ def limitBallSpeed():
     
 
 
-# In[9]:
+# In[10]:
 
 
 #Makes the ball move
@@ -157,7 +172,15 @@ def moveBall():
     ball.sety(ball.ycor() + ball.dy)
 
 
-# In[10]:
+# In[11]:
+
+
+def randomizeBallServe():
+    global ball
+    ball.dy *= random.uniform(-1, 1)
+
+
+# In[12]:
 
 
 #Screen Border Checking
@@ -182,24 +205,26 @@ def borderChecking():
         if (xCorBall > 390): #Right Screen Border
             ball.setx(390)
             score1 += 1
+            setBallSpeed(-1 * defaultBallSpeed)
 
         if (xCorBall < -390): #Left Screen Border
             ball.setx(-390)
             score2 += 1
+            setBallSpeed(defaultBallSpeed)
         
         os.system('afplay AirPlaneDing.mp3&')
         
         ball.goto(0, 0)
-        setBallSpeed(defaultBallSpeed)
+        randomizeBallServe()
         
         sb.clear()
-        sb.write('Player 1: {}  Player 2: {}'.format(score1, score2), 
+        sb.write('Player {}: {}  Player {}: {}'.format(setScoreNames()[0], score1, setScoreNames()[1], score2), 
                  align = 'center', font = ('Courier', 24, 'normal'))
         
     limitBallSpeed()
 
 
-# In[11]:
+# In[13]:
 
 
 #Determines Paddle & Ball Collisions
@@ -212,7 +237,8 @@ def paddleBallCollision():
     if ((xCorBall > 340) and (xCorBall < 350) and
         ((yCorBall < paddleB.ycor() + 50) and (yCorBall > paddleB.ycor() - 50))):
         ball.setx(340)
-        ball.dx *= (-1 * random.uniform(0.5, 2)) #Adds variety to the ball's movement
+        ball.dx *= -1
+        randomizeBallServe()
         
         os.system('afplay ButtonClickOff.mp3&')
         
@@ -221,14 +247,26 @@ def paddleBallCollision():
         
         ((yCorBall < paddleA.ycor() + 50) and (yCorBall > paddleA.ycor() - 50))):
         ball.setx(-340)
-        ball.dx *= (-1 * random.uniform(0.5, 2))
+        ball.dx *= -1
+        randomizeBallServe()
         
         os.system('afplay ButtonClickOn.mp3&')
         
     limitBallSpeed()
 
 
-# In[12]:
+# In[14]:
+
+
+def pauseGame():
+    global pause
+    if (pause == True):
+        pause = False
+    else:
+        pause = True
+
+
+# In[15]:
 
 
 #Allows players to end and quit the game without errors
@@ -237,53 +275,57 @@ def exitGame():
     running = False
 
 
-# In[13]:
+# In[16]:
 
 
 #Creates a Very Simple Player 0 AI
 def opponentAI():
-    global ball
-    global paddleB
+    global numPlayers
     
-    if (ball.ycor() > (paddleB.ycor() + 50)):
+    global ball
+    yCorBall = ball.ycor()
+    
+    global paddleB
+    yCorPB = paddleB.ycor()
+    
+    global paddleA
+    yCorPA = paddleA.ycor()
+    
+    if (yCorBall > (yCorPB + 50)):
         paddleBUp()
     
-    if (ball.ycor() < (paddleB.ycor() - 50)):
+    if (yCorBall < (yCorPB - 50)):
         paddleBDown()
-
-
-# In[14]:
-
-
-#Changes the scoreboard player names according to whether or not it is PVP or PVE
-def setScoreboardNames():
-    isPlayer2AI = 2
-    if (numPlayers == 1):
-        isPlayer2AI = 0
+        
+    if (numPlayers == 0):
+        if (yCorBall > (yCorPA + 50)):
+            paddleAUp()
     
-    return(isPlayer2AI)
+        if (yCorBall < (yCorPA - 50)):
+            paddleADown()
 
 
-# In[15]:
+# In[17]:
 
 
 #Initiates the game environment
 gameWindow = genGameWindow()
 running = True
+pause = False
 
 
-# In[16]:
+# In[18]:
 
 
 #Main Menu
-playerCount = genText(0, 'white', 0, 0, 'How many players?\nPress: "1" or "2"', 
+playerCount = genText(0, 'white', 0, 0, 'How many players?\nPress: "0", "1" or "2"', 
                       'center', ('Courier', 24, 'normal'))
 
-numPlayers = gameWindow.numinput('PlayerCountSelection', 'How many players? ', 1, minval = 1, maxval = 2)
+numPlayers = gameWindow.numinput('PlayerCountSelection', 'How many players? ', 1, minval = 0, maxval = 2)
 playerCount.clear()
 
 
-# In[17]:
+# In[19]:
 
 
 #Sets up the game environment    
@@ -312,7 +354,8 @@ score1 = 0
 score2 = 0
 
 #Scoreboard
-sb = genText(0, 'white', 0, 260, 'Player 1: {}  Player {}: {}'.format(score1, setScoreboardNames(), score2), 
+sb = genText(0, 'white', 0, 260, 
+             'Player {}: {}  Player {}: {}'.format(setScoreNames()[0], score1, setScoreNames()[1], score2), 
              'center', ('Courier', 24, 'normal'))
 
 #Player Controls Instructions
@@ -323,8 +366,12 @@ controls = genText(0, 'white', 0, 250, 'Up: "w" Down: "q"    Up: "\u2191" Down: 
 exitInstructions = genText(0, 'white', 0, -280, '  To exit the game press: "q"', 
                            'left', ('Courier', 10, 'normal'))
 
+#Pausing the Game Instructions
+exitInstructions = genText(0, 'white', 0, -280, 'To pause the game press: "p"  ', 
+                           'right', ('Courier', 10, 'normal'))
 
-# In[18]:
+
+# In[20]:
 
 
 #Keyboard Binding
@@ -332,35 +379,40 @@ gameWindow.listen()
 
 
 #Player 1
-gameWindow.onkeypress(paddleAUp, 'w')
-gameWindow.onkeypress(paddleADown, 's')
+if (numPlayers == 1 or numPlayers == 2):
+    gameWindow.onkeypress(paddleAUp, 'w')
+    gameWindow.onkeypress(paddleADown, 's')
 
 #Player 2
 if (numPlayers == 2):
     gameWindow.onkeypress(paddleBUp, 'Up')
     gameWindow.onkeypress(paddleBDown, 'Down')
 
-    
-#Stop the games executing and exit
+#Pauses the Game
+gameWindow.onkeypress(pauseGame, 'p')
+
+#Stop the Game Executing and Exit
 gameWindow.onkeypress(exitGame, 'q')
 
 
-# In[19]:
+# In[21]:
 
 
 #Main Game Loop
 while (running):
-    moveBall()
-    borderChecking()
-    paddleBallCollision()
     
-    if (numPlayers == 1):
-        opponentAI()
-    
+    if (pause == False):
+        moveBall()
+        borderChecking()
+        paddleBallCollision()
+
+        if (numPlayers < 2):
+            opponentAI()
+
     gameWindow.update()
 
 
-# In[20]:
+# In[22]:
 
 
 turtle.done()
