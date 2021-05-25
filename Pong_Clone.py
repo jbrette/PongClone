@@ -79,45 +79,95 @@ def setScoreNames():
 # In[7]:
 
 
-#Determines Paddle Movements
-#Currently not working due to some strage interaction with onkeypress method
+#Determines Paddle Movements Inside Window
 def paddleMovement(tappedKey):
-    if (tappedKey == 'w' or tappedKey == 's'):
-        global paddleA
-        y = paddleA.ycor()
-        
-        if (tappedKey == 'w'):
-            y += 50
-        else:
-            y -= 50
-        
-        paddleA.sety(y)
+    global pause
+    global gameMode
     
-    if (tappedKey == 'Up' or tappedKey == 'Down'):
-        global paddleB
-        y = paddleB.ycor()
-        
-        if (tappedKey == 'Up'):
-            y += 50
-        else:
-            y -= 50
-        
-        paddleB.sety(y)
-        
+    #Paddle A Movements
+    if (pause == False): #Prevents paddle movement when the game is paused
+        if (tappedKey == 'w' or tappedKey == 's' or tappedKey == 'a' or tappedKey == 'd'):
+            global paddleA
+            
+            if (tappedKey == 'w' or tappedKey == 's'): #Up & Down
+                yCorPA = paddleA.ycor()
+
+                if (tappedKey == 'w' and yCorPA < 250):
+                    yCorPA += 50
+                if (tappedKey == 's' and yCorPA > -250):
+                    yCorPA -= 50
+
+                paddleA.sety(yCorPA)
+            
+            if (gameMode == 1):
+                if (tappedKey == 'a' or tappedKey == 'd'): #Left & Right
+                    xCorPA = paddleA.xcor()
+
+                    if (tappedKey == 'a' and xCorPA > -350):
+                        xCorPA -= 50
+                    if (tappedKey == 'd' and xCorPA < -50):
+                        xCorPA += 50
+
+                    paddleA.setx(xCorPA)
+            
+        #Paddle B Movements    
+        if (tappedKey == 'Up' or tappedKey == 'Down' or tappedKey == 'Left' or tappedKey == 'Right'):
+            global paddleB
+            
+            if (tappedKey == 'Up' or tappedKey == 'Down'): #Up & Down
+                yCorPB = paddleB.ycor()
+
+                if (tappedKey == 'Up' and yCorPB < 250):
+                    yCorPB += 50
+                if (tappedKey == 'Down' and yCorPB > -250):
+                    yCorPB -= 50
+
+                paddleB.sety(yCorPB)
+                
+            if (gameMode == 1):
+                if (tappedKey == 'Left' or tappedKey == 'Right'): #Left & Right
+                    xCorPB = paddleB.xcor()
+
+                    if (tappedKey == 'Left' and xCorPB > 50):
+                        xCorPB -= 50
+                    if (tappedKey == 'Right' and xCorPB < 350):
+                        xCorPB += 50
+
+                    paddleB.setx(xCorPB)
+
+
+# In[8]:
+
+
+#Called Movements by 'onkeypress'
+#Paddle A
 def paddleAUp():
     paddleMovement('w')
     
 def paddleADown():
     paddleMovement('s')
     
+def paddleALeft():
+    paddleMovement('a')
+    
+def paddleARight():
+    paddleMovement('d')
+
+#Paddle B
 def paddleBUp():
     paddleMovement('Up')
     
 def paddleBDown():
     paddleMovement('Down')
+    
+def paddleBLeft():
+    paddleMovement('Left')
+    
+def paddleBRight():
+    paddleMovement('Right')
 
 
-# In[8]:
+# In[9]:
 
 
 #Determines Ball Movement Speed
@@ -126,7 +176,7 @@ def setBallSpeed(speed):
     ball.dy = speed #Movement on y-axis
 
 
-# In[9]:
+# In[10]:
 
 
 #Limits the Ball Movement Speed to Resonable Levels
@@ -162,17 +212,16 @@ def limitBallSpeed():
     
 
 
-# In[10]:
+# In[11]:
 
 
 #Makes the ball move
-def moveBall():
-    global ball
-    ball.setx(ball.xcor() + ball.dx)
-    ball.sety(ball.ycor() + ball.dy)
+def moveBall(bl):
+    bl.setx(bl.xcor() + bl.dx)
+    bl.sety(bl.ycor() + bl.dy)
 
 
-# In[11]:
+# In[12]:
 
 
 def randomizeBallServe():
@@ -180,7 +229,7 @@ def randomizeBallServe():
     ball.dy *= random.uniform(-1, 1)
 
 
-# In[12]:
+# In[13]:
 
 
 #Screen Border Checking
@@ -224,7 +273,7 @@ def borderChecking():
     limitBallSpeed()
 
 
-# In[13]:
+# In[14]:
 
 
 #Determines Paddle & Ball Collisions
@@ -233,20 +282,29 @@ def paddleBallCollision():
     yCorBall = ball.ycor()
     xCorBall = ball.xcor()
     
+    global paddleA
+    yCorPA = paddleA.ycor()
+    xCorPA = paddleA.xcor()
+    
+    global PaddleB
+    yCorPB = paddleB.ycor()
+    xCorPB = paddleB.xcor()
+    
     #Right Paddle
-    if ((xCorBall > 340) and (xCorBall < 350) and
-        ((yCorBall < paddleB.ycor() + 50) and (yCorBall > paddleB.ycor() - 50))):
-        ball.setx(340)
+    if ((yCorBall >= yCorPB - 50 and yCorBall <= yCorPB + 50) and 
+        (xCorBall >= xCorPB - 10 and xCorBall <= xCorPB + 10)):
+
+        ball.setx(xCorPB - 10)
         ball.dx *= -1
         randomizeBallServe()
         
         os.system('afplay ButtonClickOff.mp3&')
         
     #Left Paddle
-    if ((xCorBall < -340) and (xCorBall > -350) and
+    if ((yCorBall >= yCorPA - 50 and yCorBall <= yCorPA + 50) and 
+        (xCorBall <= xCorPA + 10 and xCorBall >= xCorPA - 10)):
         
-        ((yCorBall < paddleA.ycor() + 50) and (yCorBall > paddleA.ycor() - 50))):
-        ball.setx(-340)
+        ball.setx(xCorPA + 10)
         ball.dx *= -1
         randomizeBallServe()
         
@@ -255,18 +313,22 @@ def paddleBallCollision():
     limitBallSpeed()
 
 
-# In[14]:
+# In[15]:
 
 
 def pauseGame():
     global pause
+    global pauseMessage
+    
     if (pause == True):
         pause = False
+        pauseMessage.clear()
     else:
         pause = True
+        pauseMessage = genText(0, 'white', 0, 0, '  Game  Paused', 'center', ('Courier', 24, 'normal'))
 
 
-# In[15]:
+# In[16]:
 
 
 #Allows players to end and quit the game without errors
@@ -275,57 +337,86 @@ def exitGame():
     running = False
 
 
-# In[16]:
+# In[17]:
 
 
 #Creates a Very Simple Player 0 AI
-def opponentAI():
-    global numPlayers
+def opponentAI(bl, pB, pA, nP, gM):
+
+    yCorBall = bl.ycor()
+    xCorBall = bl.xcor()
     
-    global ball
-    yCorBall = ball.ycor()
+    yCorPB = pB.ycor()
+    xCorPB = pB.xcor()
     
-    global paddleB
-    yCorPB = paddleB.ycor()
-    
-    global paddleA
-    yCorPA = paddleA.ycor()
+    yCorPA = pA.ycor()
+    xCorPA = pA.xcor()
     
     if (yCorBall > (yCorPB + 50)):
         paddleBUp()
     
-    if (yCorBall < (yCorPB - 50)):
+    elif (yCorBall < (yCorPB - 50)):
         paddleBDown()
+    
+    if (gM == 1):
+        if (xCorBall > 0 and xCorBall < xCorPB - 10 and xCorBall - xCorPB < 75):
+            paddleBLeft()
+
+        elif (xCorBall > xCorPB - 10):
+            paddleBRight()
         
-    if (numPlayers == 0):
+        else:
+            paddleBRight()
+
+    if (nP == 0):
         if (yCorBall > (yCorPA + 50)):
             paddleAUp()
-    
-        if (yCorBall < (yCorPA - 50)):
+
+        elif (yCorBall < (yCorPA - 50)):
             paddleADown()
+        
+        if (gM == 1):
+            if (xCorBall < 0 and xCorBall < xCorPA + 10 and xCorBall - xCorPA < 75):
+                paddleALeft()
+
+            elif (xCorBall > xCorPA + 10):
+                paddleARight()
+                
+            else:
+                paddleALeft()
 
 
-# In[17]:
+# In[18]:
 
 
 #Initiates the game environment
 gameWindow = genGameWindow()
 running = True
 pause = False
+pauseMessage = genText(0, 'white', 0, 0, '', 'center', ('Courier', 24, 'normal'))
 
 
-# In[18]:
+# In[19]:
 
 
 #Main Menu
+#Number of Players
 playerCount = genText(0, 'white', 0, 0, 'How many players?\nPress: "0", "1" or "2"', 
                       'center', ('Courier', 24, 'normal'))
 
 numPlayers = gameWindow.numinput('PlayerCountSelection', 'How many players? ', 1, minval = 0, maxval = 2)
 playerCount.clear()
 
+#Game Type
+gameType = genText(0, 'white', 0, 0, 'Which Game Mode: Classic or Advanced\nPress: "0" or "1"', 
+                   'center', ('Courier', 24, 'normal'))
 
-# In[19]:
+gameMode = gameWindow.numinput('GameModeSelection', 'Which Game Mode: Classic or Advanced?', 
+                               0, minval = 0, maxval = 1)
+gameType.clear()
+
+
+# In[20]:
 
 
 #Sets up the game environment    
@@ -362,6 +453,10 @@ sb = genText(0, 'white', 0, 260,
 controls = genText(0, 'white', 0, 250, 'Up: "w" Down: "q"    Up: "\u2191" Down: "\u2193"', 
                    'center', ('Courier', 10, 'normal'))
 
+if (gameMode == 1):
+    controls = genText(0, 'white', 0, 230, 'Left: "a" Right: "d"    Left: "\u2190" Right: "\u2192"', 
+                       'center', ('Courier', 10, 'normal'))
+
 #Exiting the Game Instructions
 exitInstructions = genText(0, 'white', 0, -280, '  To exit the game press: "q"', 
                            'left', ('Courier', 10, 'normal'))
@@ -371,22 +466,35 @@ exitInstructions = genText(0, 'white', 0, -280, 'To pause the game press: "p"  '
                            'right', ('Courier', 10, 'normal'))
 
 
-# In[20]:
+# In[21]:
+
+
+def playerControlsSwitch(nP, gM):
+    
+    #Player 1
+    if (nP >= 1):
+        gameWindow.onkeypress(paddleAUp, 'w')
+        gameWindow.onkeypress(paddleADown, 's')
+        
+        if (gM == 1):
+            gameWindow.onkeypress(paddleALeft, 'a')
+            gameWindow.onkeypress(paddleARight, 'd')
+
+    #Player 2
+    if (nP == 2):
+        gameWindow.onkeypress(paddleBUp, 'Up')
+        gameWindow.onkeypress(paddleBDown, 'Down')
+        
+        if (gM == 1):
+            gameWindow.onkeypress(paddleBLeft, 'Left')
+            gameWindow.onkeypress(paddleBRight, 'Right')
+
+
+# In[22]:
 
 
 #Keyboard Binding
 gameWindow.listen()
-
-
-#Player 1
-if (numPlayers == 1 or numPlayers == 2):
-    gameWindow.onkeypress(paddleAUp, 'w')
-    gameWindow.onkeypress(paddleADown, 's')
-
-#Player 2
-if (numPlayers == 2):
-    gameWindow.onkeypress(paddleBUp, 'Up')
-    gameWindow.onkeypress(paddleBDown, 'Down')
 
 #Pauses the Game
 gameWindow.onkeypress(pauseGame, 'p')
@@ -395,24 +503,25 @@ gameWindow.onkeypress(pauseGame, 'p')
 gameWindow.onkeypress(exitGame, 'q')
 
 
-# In[21]:
+# In[23]:
 
 
 #Main Game Loop
 while (running):
     
     if (pause == False):
-        moveBall()
+        playerControlsSwitch(numPlayers, gameMode)
+        moveBall(ball)
         borderChecking()
         paddleBallCollision()
 
         if (numPlayers < 2):
-            opponentAI()
+            opponentAI(ball, paddleB, paddleA, numPlayers, gameMode)
 
     gameWindow.update()
 
 
-# In[22]:
+# In[24]:
 
 
 turtle.done()
