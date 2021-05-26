@@ -80,12 +80,9 @@ def setScoreNames():
 
 
 #Determines Paddle Movements Inside Window
-def paddleMovement(tappedKey):
-    global pause
-    global gameMode
-    
+def paddleMovement(tappedKey, pa, gM):   
     #Paddle A Movements
-    if (pause == False): #Prevents paddle movement when the game is paused
+    if (pa == False): #Prevents paddle movement when the game is paused
         if (tappedKey == 'w' or tappedKey == 's' or tappedKey == 'a' or tappedKey == 'd'):
             global paddleA
             
@@ -99,7 +96,7 @@ def paddleMovement(tappedKey):
 
                 paddleA.sety(yCorPA)
             
-            if (gameMode == 1):
+            if (gM == 1):
                 if (tappedKey == 'a' or tappedKey == 'd'): #Left & Right
                     xCorPA = paddleA.xcor()
 
@@ -108,6 +105,7 @@ def paddleMovement(tappedKey):
                     if (tappedKey == 'd' and xCorPA < -50):
                         xCorPA += 50
 
+                    
                     paddleA.setx(xCorPA)
             
         #Paddle B Movements    
@@ -124,7 +122,7 @@ def paddleMovement(tappedKey):
 
                 paddleB.sety(yCorPB)
                 
-            if (gameMode == 1):
+            if (gM == 1):
                 if (tappedKey == 'Left' or tappedKey == 'Right'): #Left & Right
                     xCorPB = paddleB.xcor()
 
@@ -142,32 +140,72 @@ def paddleMovement(tappedKey):
 #Called Movements by 'onkeypress'
 #Paddle A
 def paddleAUp():
-    paddleMovement('w')
+    paddleMovement('w', pause, gameMode)
     
 def paddleADown():
-    paddleMovement('s')
+    paddleMovement('s', pause, gameMode)
     
 def paddleALeft():
-    paddleMovement('a')
+    paddleMovement('a', pause, gameMode)
     
 def paddleARight():
-    paddleMovement('d')
+    paddleBallMoveCollision(ball, paddleA, paddleB)
+    paddleMovement('d', pause, gameMode)
 
 #Paddle B
 def paddleBUp():
-    paddleMovement('Up')
+    paddleMovement('Up', pause, gameMode)
     
 def paddleBDown():
-    paddleMovement('Down')
+    paddleMovement('Down', pause, gameMode)
     
 def paddleBLeft():
-    paddleMovement('Left')
+    paddleBallMoveCollision(ball, paddleA, paddleB)
+    paddleMovement('Left', pause, gameMode)
     
 def paddleBRight():
-    paddleMovement('Right')
+    paddleMovement('Right', pause, gameMode)
 
 
 # In[9]:
+
+
+#Allows players to hit the ball harder or softer
+def paddleSwingPower(swingStrength):
+    global paddleAStrength
+    global paddleBStrength
+    
+    if (swingStrength == 'r'):
+        paddleAStrength = 2
+    if (swingStrength == 'f'):
+        paddleAStrength = 0.5
+        
+    if (swingStrength == 'o'):
+        paddleBStrength = 2
+    if (swingStrength == 'l'):
+        paddleBStrength = 0.5
+
+
+# In[10]:
+
+
+#Call strength by 'onkeypress'
+#Paddle A
+def strongerPaddleASwing():
+    paddleSwingPower('r')
+    
+def weakerPaddleASwing():
+    paddleSwingPower('f')
+
+#Paddle B
+def strongerPaddleBSwing():
+    paddleSwingPower('o')
+    
+def weakerPaddleBSwing():
+    paddleSwingPower('l')
+
+
+# In[11]:
 
 
 #Determines Ball Movement Speed
@@ -176,43 +214,40 @@ def setBallSpeed(speed):
     ball.dy = speed #Movement on y-axis
 
 
-# In[10]:
+# In[12]:
 
 
 #Limits the Ball Movement Speed to Resonable Levels
-def limitBallSpeed():
-    global ball
-    if (abs(ball.dx) > 3):
-        ball.dx = 3
-        if (ball.dx > 0):
-            ball.dx *= random.uniform(0.25, 1)
-        if (ball.dx < 0):
-            ball.dx *= (-1 * random.uniform(0.25, 1))
+def limitBallSpeed(bl):
+    dxBall = bl.dx
+    dyBall = bl.dy
     
-    if (abs(ball.dy) > 3):
-        ball.dy = 3
-        if (ball.dy > 0):
-            ball.dy *= random.uniform(0.25, 1)
-        if (ball.dy < 0):
-            ball.dy *= (-1 * random.uniform(0.25, 1))
+    if (dxBall < -3):
+        bl.dx = -3
     
-    if (abs(ball.dx) < 0.75):
-        ball.dx = 0.75
-        if (ball.dx > 0):
-            ball.dx *= random.uniform(1, 4)
-        if (ball.dx < 0):
-            ball.dx *= (-1 * random.uniform(1, 4))
+    if (dxBall > 3):
+        bl.dx = 3
+
+    if (dyBall < -3):
+        bl.dy = -3
     
-    if (abs(ball.dy) < 0.75):
-        ball.dy = 0.75
-        if (ball.dy > 0):
-            ball.dy *= random.uniform(1, 4)
-        if (ball.dy < 0):
-            ball.dy *= (-1 * random.uniform(1, 4))
+    if (dyBall > 3):
+        bl.dy = 3
     
+    if (dxBall > -0.75 and dxBall < 0):
+        bl.dx = -0.75
+    
+    if (dxBall < 0.75 and dxBall > 0):
+        bl.dx = 0.75
+    
+    if (dyBall > -0.5 and dyBall < 0):
+        bl.dy = -0.5
+        
+    if (dyBall > 0 and dyBall < 0.5):
+        bl.dy = 0.5
 
 
-# In[11]:
+# In[13]:
 
 
 #Makes the ball move
@@ -221,99 +256,136 @@ def moveBall(bl):
     bl.sety(bl.ycor() + bl.dy)
 
 
-# In[12]:
+# In[14]:
 
 
-def randomizeBallServe():
-    global ball
-    ball.dy *= random.uniform(-1, 1)
+def randomizeBallServe(bl):
+    bl.dy *= random.uniform(-1, 1)
 
 
-# In[13]:
+# In[15]:
 
 
 #Screen Border Checking
-def borderChecking():
-    global ball
+def borderChecking(bl):
     global score1
-    global score2
+    global score2 
     
-    yCorBall = ball.ycor()
-    xCorBall = ball.xcor()
+    yCorBall = bl.ycor()
+    xCorBall = bl.xcor()
     
     if (yCorBall > 290 or yCorBall < -290):
         if (yCorBall > 290): #Top Screen Border
-            ball.sety(290)
+            bl.sety(290)
 
         if (yCorBall < -290): #Bottom Screen Border
-            ball.sety(-290)
+            bl.sety(-290)
         
-        ball.dy *= -1
+        bl.dy *= -1
     
     if (xCorBall > 390 or xCorBall < -390):
         if (xCorBall > 390): #Right Screen Border
-            ball.setx(390)
+            bl.setx(390)
             score1 += 1
             setBallSpeed(-1 * defaultBallSpeed)
 
         if (xCorBall < -390): #Left Screen Border
-            ball.setx(-390)
+            bl.setx(-390)
             score2 += 1
             setBallSpeed(defaultBallSpeed)
         
         os.system('afplay AirPlaneDing.mp3&')
         
-        ball.goto(0, 0)
-        randomizeBallServe()
+        bl.goto(0, 0)
+        randomizeBallServe(bl)
         
         sb.clear()
         sb.write('Player {}: {}  Player {}: {}'.format(setScoreNames()[0], score1, setScoreNames()[1], score2), 
                  align = 'center', font = ('Courier', 24, 'normal'))
-        
-    limitBallSpeed()
+
+    limitBallSpeed(bl)
 
 
-# In[14]:
+# In[16]:
 
 
 #Determines Paddle & Ball Collisions
-def paddleBallCollision():
-    global ball
-    yCorBall = ball.ycor()
-    xCorBall = ball.xcor()
+def paddleBallCollision(bl, bH, pA, pAS, pB, pBS):
+    global ballHit
     
-    global paddleA
-    yCorPA = paddleA.ycor()
-    xCorPA = paddleA.xcor()
+    yCorBall = bl.ycor()
+    xCorBall = bl.xcor()
     
-    global PaddleB
-    yCorPB = paddleB.ycor()
-    xCorPB = paddleB.xcor()
+    yCorPA = pA.ycor()
+    xCorPA = pA.xcor()
+    
+    yCorPB = pB.ycor()
+    xCorPB = pB.xcor()
     
     #Right Paddle
     if ((yCorBall >= yCorPB - 50 and yCorBall <= yCorPB + 50) and 
         (xCorBall >= xCorPB - 10 and xCorBall <= xCorPB + 10)):
 
-        ball.setx(xCorPB - 10)
-        ball.dx *= -1
-        #randomizeBallServe()
-        
+        bl.setx(xCorPB - 10)
+        bl.dx *= -1 * pBS
+        #bH = 1
+        ballHit = 1
+        resultingCollisionAngle(bl, yCorBall, yCorPB)
         os.system('afplay ButtonClickOff.mp3&')
         
     #Left Paddle
     if ((yCorBall >= yCorPA - 50 and yCorBall <= yCorPA + 50) and 
         (xCorBall <= xCorPA + 10 and xCorBall >= xCorPA - 10)):
         
-        ball.setx(xCorPA + 10)
-        ball.dx *= -1
-        #randomizeBallServe()
-        
+        bl.setx(xCorPA + 10)
+        bl.dx *= -1 * pAS
+        #bH = 0
+        ballHit = 0
+        resultingCollisionAngle(bl, yCorBall, yCorPA)
         os.system('afplay ButtonClickOn.mp3&')
         
-    limitBallSpeed()
+    limitBallSpeed(bl)
 
 
-# In[15]:
+# In[17]:
+
+
+#Prevents the Ball from glitching through a paddle moving towards it
+def paddleBallMoveCollision(bl, pA, pB):
+    yCorBall = bl.ycor()
+    xCorBall = bl.xcor()
+    
+    yCorPA = pA.ycor()
+    xCorPA = pA.xcor()
+    
+    yCorPB = pB.ycor()
+    xCorPB = pB.xcor()
+    
+    if (xCorBall > 0 and xCorPB - 10 - 50 < xCorBall):
+        bl.setx(xCorPB - 60)
+        
+    if (xCorBall < 0 and xCorPA + 10 + 50 > xCorBall):
+        bl.setx(xCorPA + 60)
+
+
+# In[18]:
+
+
+#Adjust the angle of the ball's trajectory depending on where it struck along the paddle's length
+def resultingCollisionAngle(bl, bYCor, pYCor):
+    bl.dy *= (abs(pYCor - bYCor) / 16.66)
+    
+    if (bYCor >= pYCor - 50 and bYCor < pYCor and bl.dy > 0):
+        bl.dy *= -1
+  
+    elif (bYCor <= pYCor + 50 and bYCor > pYCor and bl.dy < 0):
+        bl.dy *= -1
+            
+    #else:
+    #    bl.dy *= 0 
+
+
+# In[19]:
 
 
 def pauseGame():
@@ -328,7 +400,7 @@ def pauseGame():
         pauseMessage = genText(0, 'white', 0, 0, '  Game  Paused', 'center', ('Courier', 24, 'normal'))
 
 
-# In[16]:
+# In[20]:
 
 
 #Allows players to end and quit the game without errors
@@ -337,12 +409,11 @@ def exitGame():
     running = False
 
 
-# In[17]:
+# In[21]:
 
 
 #Creates a Very Simple Player 0 AI
-def opponentAI(bl, pB, pA, nP, gM):
-
+def opponentAI(bl, bH, pB, pA, nP, gM):
     yCorBall = bl.ycor()
     xCorBall = bl.xcor()
     
@@ -359,10 +430,16 @@ def opponentAI(bl, pB, pA, nP, gM):
         paddleBDown()
     
     if (gM == 1):
-        if (xCorBall > 0 and xCorBall < xCorPB - 10 and xCorPB - xCorBall <= 75):
+        strength = random.randint(0, 1)
+        if (strength == 1):
+            strongerPaddleBSwing()
+        else:
+            weakerPaddleBSwing()
+    
+        if (xCorBall > 0 and xCorBall < xCorPB - 10 and xCorPB - xCorBall <= 75 and bH == 0):
             pass
         
-        elif (xCorBall > 0 and xCorBall < xCorPB - 10):
+        elif (xCorBall > 0 and xCorBall < xCorPB - 10 and bH == 0):
             paddleBLeft()
         
         else:
@@ -376,17 +453,23 @@ def opponentAI(bl, pB, pA, nP, gM):
             paddleADown()
         
         if (gM == 1):
-            if (xCorBall < 0 and xCorBall > xCorPA + 10 and abs(xCorPA - xCorBall) <= 75):
+            strength = random.randint(0, 1)
+            if (strength == 1):
+                strongerPaddleASwing()
+            else:
+                weakerPaddleASwing()
+            
+            if (xCorBall < 0 and xCorBall > xCorPA + 10 and abs(xCorPA - xCorBall) <= 75 and bH == 1):
                 pass
             
-            elif (xCorBall < 0 and xCorBall > xCorPA + 10):
+            elif (xCorBall < 0 and xCorBall > xCorPA + 10 and bH == 1):
                 paddleARight()
             
             else:
                 paddleALeft()
 
 
-# In[18]:
+# In[22]:
 
 
 #Initiates the game environment
@@ -397,7 +480,7 @@ pauseMessage = genText(0, 'white', 0, 0, '', 'center', ('Courier', 24, 'normal')
 speedAI = 26
 
 
-# In[19]:
+# In[23]:
 
 
 #Main Menu
@@ -417,7 +500,7 @@ gameMode = gameWindow.numinput('GameModeSelection', 'Which Game Mode: Classic or
 gameType.clear()
 
 
-# In[20]:
+# In[24]:
 
 
 #Sets up the game environment    
@@ -428,14 +511,17 @@ playingFieldDivider = genObject(0, 'square', 30, 0.1, 'white', 0, 0)
 #Generates the Paddles
 #Left Paddle A
 paddleA = genObject(0, 'square', 5, 1, 'white', -350, 0)
+paddleAStrength = 1
 
 #Right Paddle B
 paddleB = genObject(0, 'square', 5, 1, 'white', 350, 0)
+paddleBStrength = 1
 
 
 #Generates the Ball
 #Ball
 ball = genObject(0, 'square', 1, 1, 'white', 0, 0)
+ballHit = 0
 defaultBallSpeed = 1.5
 setBallSpeed(defaultBallSpeed)
 
@@ -457,6 +543,9 @@ controls = genText(0, 'white', 0, 250, 'Up: "w" Down: "q"    Up: "\u2191" Down: 
 if (gameMode == 1):
     controls = genText(0, 'white', 0, 230, 'Left: "a" Right: "d"    Left: "\u2190" Right: "\u2192"', 
                        'center', ('Courier', 10, 'normal'))
+    controls = genText(0, 'white', 0, 210, 
+                       'Stronger Swing: "r" Weaker Swing: "f"    Stronger Swing: "o" Weaker Swing: "l"', 
+                       'center', ('Courier', 10, 'normal'))
 
 #Exiting the Game Instructions
 exitInstructions = genText(0, 'white', 0, -280, '  To exit the game press: "q"', 
@@ -467,11 +556,10 @@ exitInstructions = genText(0, 'white', 0, -280, 'To pause the game press: "p"  '
                            'right', ('Courier', 10, 'normal'))
 
 
-# In[21]:
+# In[25]:
 
 
 def playerControlsSwitch(nP, gM):
-    
     #Player 1
     if (nP >= 1):
         gameWindow.onkeypress(paddleAUp, 'w')
@@ -480,6 +568,9 @@ def playerControlsSwitch(nP, gM):
         if (gM == 1):
             gameWindow.onkeypress(paddleALeft, 'a')
             gameWindow.onkeypress(paddleARight, 'd')
+            
+            gameWindow.onkeypress(strongerPaddleASwing, 'r')
+            gameWindow.onkeypress(weakerPaddleASwing, 'f')
 
     #Player 2
     if (nP == 2):
@@ -489,9 +580,12 @@ def playerControlsSwitch(nP, gM):
         if (gM == 1):
             gameWindow.onkeypress(paddleBLeft, 'Left')
             gameWindow.onkeypress(paddleBRight, 'Right')
+                    
+            gameWindow.onkeypress(strongerPaddleASwing, 'o')
+            gameWindow.onkeypress(weakerPaddleASwing, 'l')
 
 
-# In[22]:
+# In[26]:
 
 
 #Keyboard Binding
@@ -504,7 +598,7 @@ gameWindow.onkeypress(pauseGame, 'p')
 gameWindow.onkeypress(exitGame, 'q')
 
 
-# In[23]:
+# In[27]:
 
 
 #Main Game Loop
@@ -513,19 +607,19 @@ while (running):
     if (pause == False):
         playerControlsSwitch(numPlayers, gameMode)
         moveBall(ball)
-        borderChecking()
-        paddleBallCollision()
+        borderChecking(ball)
+        paddleBallCollision(ball, ballHit, paddleA, paddleAStrength, paddleB, paddleBStrength)
 
         if (numPlayers < 2):
             speedAI -= 1
             if (speedAI == 0):
-                opponentAI(ball, paddleB, paddleA, numPlayers, gameMode)
+                opponentAI(ball, ballHit, paddleB, paddleA, numPlayers, gameMode)
                 speedAI = 26
 
     gameWindow.update()
 
 
-# In[24]:
+# In[28]:
 
 
 turtle.done()
