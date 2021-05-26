@@ -296,7 +296,7 @@ def paddleBallCollision():
 
         ball.setx(xCorPB - 10)
         ball.dx *= -1
-        randomizeBallServe()
+        #randomizeBallServe()
         
         os.system('afplay ButtonClickOff.mp3&')
         
@@ -306,7 +306,7 @@ def paddleBallCollision():
         
         ball.setx(xCorPA + 10)
         ball.dx *= -1
-        randomizeBallServe()
+        #randomizeBallServe()
         
         os.system('afplay ButtonClickOn.mp3&')
         
@@ -359,11 +359,11 @@ def opponentAI(bl, pB, pA, nP, gM):
         paddleBDown()
     
     if (gM == 1):
-        if (xCorBall > 0 and xCorBall < xCorPB - 10 and xCorBall - xCorPB < 75):
+        if (xCorBall > 0 and xCorBall < xCorPB - 10 and xCorPB - xCorBall <= 75):
+            pass
+        
+        elif (xCorBall > 0 and xCorBall < xCorPB - 10):
             paddleBLeft()
-
-        elif (xCorBall > xCorPB - 10):
-            paddleBRight()
         
         else:
             paddleBRight()
@@ -376,12 +376,12 @@ def opponentAI(bl, pB, pA, nP, gM):
             paddleADown()
         
         if (gM == 1):
-            if (xCorBall < 0 and xCorBall < xCorPA + 10 and xCorBall - xCorPA < 75):
-                paddleALeft()
-
-            elif (xCorBall > xCorPA + 10):
+            if (xCorBall < 0 and xCorBall > xCorPA + 10 and abs(xCorPA - xCorBall) <= 75):
+                pass
+            
+            elif (xCorBall < 0 and xCorBall > xCorPA + 10):
                 paddleARight()
-                
+            
             else:
                 paddleALeft()
 
@@ -394,6 +394,7 @@ gameWindow = genGameWindow()
 running = True
 pause = False
 pauseMessage = genText(0, 'white', 0, 0, '', 'center', ('Courier', 24, 'normal'))
+speedAI = 26
 
 
 # In[19]:
@@ -516,7 +517,10 @@ while (running):
         paddleBallCollision()
 
         if (numPlayers < 2):
-            opponentAI(ball, paddleB, paddleA, numPlayers, gameMode)
+            speedAI -= 1
+            if (speedAI == 0):
+                opponentAI(ball, paddleB, paddleA, numPlayers, gameMode)
+                speedAI = 26
 
     gameWindow.update()
 
