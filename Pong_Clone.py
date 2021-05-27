@@ -297,7 +297,7 @@ def borderChecking(bl):
         os.system('afplay AirPlaneDing.mp3&')
         
         bl.goto(0, 0)
-        randomizeBallServe(bl)
+        #randomizeBallServe(bl)
         
         sb.clear()
         sb.write('Player {}: {}  Player {}: {}'.format(setScoreNames()[0], score1, setScoreNames()[1], score2), 
@@ -413,7 +413,7 @@ def exitGame():
 
 
 #Creates a Very Simple Player 0 AI
-def opponentAI(bl, bH, pB, pA, nP, gM):
+def simpleOpponentAI(bl, bH, pB, pA, nP, gM):
     yCorBall = bl.ycor()
     xCorBall = bl.xcor()
     
@@ -472,15 +472,120 @@ def opponentAI(bl, bH, pB, pA, nP, gM):
 # In[22]:
 
 
-#Initiates the game environment
-gameWindow = genGameWindow()
-running = True
-pause = False
-pauseMessage = genText(0, 'white', 0, 0, '', 'center', ('Courier', 24, 'normal'))
-speedAI = 26
+#Inneficient currently, will have to revisit to cut down copy pasted code with minor revisions
+#So far only somewhat works for classic mode
+def predictBallMovement(bl):
+    global ballScoreXCor
+    global ballScoreYCor
+    
+    #Predict's the balls path
+    xCorBall = bl.xcor()
+    
+    if (xCorBall > 0 and xCorBall < 5):
+        ballScoreXCor = 390
+        
+        yCorBall = bl.ycor()
+        
+        dxBall = bl.dx
+        dyBall = bl.dy
+        
+        #Right side of playing field
+        if (dxBall > 0): 
+            xDistToRightBorder = 390 - xCorBall
+            xTimeToRightBorder = xDistToRightBorder / dxBall
+            
+            #Positive 'dy' Value
+            if (dyBall > 0):
+                yDistToTop = 290 - yCorBall
+                yTimeToTop = yDistToTop / dyBall
+                
+                if (yTimeToTop < xTimeToRightBorder):
+                    xTimeToRightBorder -= yTimeToTop
+                    
+                    yTimeToCrossHalfOfField = 290 / abs(dyBall)
+                    ratio = xTimeToRightBorder / yTimeToCrossHalfOfField
+                    wholeRatio = int(ratio)
+                    
+                    timeLeft = xTimeToRightBorder - (yTimeToCrossHalfOfField * wholeRatio)
+                    
+                    numBounces = int(wholeRatio / 2) + 1
+                    
+                    wholeRatiosAfterLastBounce = wholeRatio - (2 * (numBounces - 1))
+                    
+                    if (numBounces % 2 > 0):
+                        ballScoreYCor = 290 - (wholeRatiosAfterLastBounce * 290) - (timeLeft * dyBall)
+                        
+                    else:
+                        ballScoreYCor = -290 + (wholeRatiosAfterLastBounce * 290) + (timeLeft * dyBall)
+          
+                elif (xTimeToRightBorder < yTimeToTop): 
+                    ballScoreYCor = yCorBall + (dyBall * xTimeToRightBorder)
+            
+            #Negative 'dy' Value
+            if (dyBall < 0):
+                yDistToBottom = -290 - yCorBall
+                yTimeToBottom = yDistToBottom / dyBall
+                
+                if (yTimeToBottom < xTimeToRightBorder):
+                    xTimeToRightBorder -= yTimeToBottom
+                    
+                    yTimeToCrossHalfOfField = 290 / abs(dyBall)
+                    ratio = xTimeToRightBorder / yTimeToCrossHalfOfField
+                    wholeRatio = int(ratio)
+                    
+                    timeLeft = xTimeToRightBorder - (yTimeToCrossHalfOfField * wholeRatio)
+                    
+                    numBounces = int(wholeRatio / 2) + 1
+                    
+                    wholeRatiosAfterLastBounce = wholeRatio - (2 * (numBounces - 1))
+                    
+                    if (numBounces % 2 > 0):
+                        ballScoreYCor = -290 + (wholeRatiosAfterLastBounce * 290) + (timeLeft * abs(dyBall))
+                        
+                    else:
+                        ballScoreYCor = 290 - (wholeRatiosAfterLastBounce * 290) - (timeLeft * abs(dyBall))
+          
+                elif (xTimeToRightBorder < yTimeToBottom): 
+                    ballScoreYCor = yCorBall - (abs(dyBall) * xTimeToRightBorder)
+        
+        if (dxBall < 0):
+            ballScoreXCor = 0
+            ballScoreYCor = 0
 
 
 # In[23]:
+
+
+def predictiveOpponentAI(pB):    
+    xCorPB = pB.xcor()
+    yCorPB = pB.ycor()
+    
+    #Control's the AI Paddles
+    if (ballScoreYCor > (yCorPB + 50)):
+        paddleBUp()
+    
+    elif (ballScoreYCor < (yCorPB - 50)):
+        paddleBDown()
+
+
+# In[24]:
+
+
+#Initiates the game environment
+gameWindow = genGameWindow()
+running = True
+
+pause = False
+pauseMessage = genText(0, 'white', 0, 0, '', 'center', ('Courier', 24, 'normal'))
+
+speedSAI = 26
+speedPAI = 26
+
+ballScoreXCor = 0
+ballScoreYCor = 0
+
+
+# In[25]:
 
 
 #Main Menu
@@ -497,10 +602,17 @@ gameType = genText(0, 'white', 0, 0, 'Which Game Mode: Classic or Advanced\nPres
 
 gameMode = gameWindow.numinput('GameModeSelection', 'Which Game Mode: Classic or Advanced?', 
                                0, minval = 0, maxval = 1)
+
+gameType.clear()
+
+#AI Mode
+modeAI = gameWindow.numinput('AIModeSelection', 'Which AI Mode: Simple or Predictive?', 
+                             0, minval = 0, maxval = 1)
+
 gameType.clear()
 
 
-# In[24]:
+# In[26]:
 
 
 #Sets up the game environment    
@@ -537,7 +649,7 @@ sb = genText(0, 'white', 0, 260,
              'center', ('Courier', 24, 'normal'))
 
 #Player Controls Instructions
-controls = genText(0, 'white', 0, 250, 'Up: "w" Down: "q"    Up: "\u2191" Down: "\u2193"', 
+controls = genText(0, 'white', 0, 250, 'Up: "w" Down: "s"    Up: "\u2191" Down: "\u2193"', 
                    'center', ('Courier', 10, 'normal'))
 
 if (gameMode == 1):
@@ -556,7 +668,7 @@ exitInstructions = genText(0, 'white', 0, -280, 'To pause the game press: "p"  '
                            'right', ('Courier', 10, 'normal'))
 
 
-# In[25]:
+# In[27]:
 
 
 def playerControlsSwitch(nP, gM):
@@ -585,7 +697,7 @@ def playerControlsSwitch(nP, gM):
             gameWindow.onkeypress(weakerPaddleASwing, 'l')
 
 
-# In[26]:
+# In[28]:
 
 
 #Keyboard Binding
@@ -598,7 +710,7 @@ gameWindow.onkeypress(pauseGame, 'p')
 gameWindow.onkeypress(exitGame, 'q')
 
 
-# In[27]:
+# In[29]:
 
 
 #Main Game Loop
@@ -611,16 +723,35 @@ while (running):
         paddleBallCollision(ball, ballHit, paddleA, paddleAStrength, paddleB, paddleBStrength)
 
         if (numPlayers < 2):
-            speedAI -= 1
-            if (speedAI == 0):
-                opponentAI(ball, ballHit, paddleB, paddleA, numPlayers, gameMode)
-                speedAI = 26
-
+            if (modeAI == 0):
+                speedSAI -= 1
+                if (speedSAI == 0):
+                    simpleOpponentAI(ball, ballHit, paddleB, paddleA, numPlayers, gameMode)
+                    speedSAI = 26
+            else:
+                predictBallMovement(ball)
+                speedPAI -= 1
+                if (speedPAI == 0):
+                    predictiveOpponentAI(paddleB)
+                    speedPAI = 26
+                    
     gameWindow.update()
 
 
-# In[28]:
+# In[30]:
 
 
 turtle.done()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
