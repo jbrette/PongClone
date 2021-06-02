@@ -472,100 +472,109 @@ def simpleOpponentAI(bl, bH, pB, pA, nP, gM):
 # In[22]:
 
 
-#Inneficient currently, will have to revisit to cut down copy pasted code with minor revisions
-#So far only somewhat works for classic mode
+#Accurately predict's the ball's path; currently only functions for classic mode
 def predictBallMovement(bl):
     global ballScoreXCor
     global ballScoreYCor
     
-    #Predict's the balls path
     xCorBall = bl.xcor()
+    yCorBall = bl.ycor()
     
-    if (xCorBall > 0 and xCorBall < 5):
-        ballScoreXCor = 390
-        
-        yCorBall = bl.ycor()
-        
-        dxBall = bl.dx
-        dyBall = bl.dy
-        
-        #Right side of playing field
-        if (dxBall > 0): 
-            xDistToRightBorder = 390 - xCorBall
-            xTimeToRightBorder = xDistToRightBorder / dxBall
+    dxBall = bl.dx
+    dyBall = bl.dy
+    
+    xCorBaseline = 350
+    yCorSideline = 290
+    
+    if (abs(xCorBall) < 5):
+        if (dxBall > 0):
+            xCorBasline = 350
+        elif (dxBall < 0):
+            xCorBasline = -350
+         
+        xDistToBaseline = xCorBaseline - xCorBall
+        xTimeToBaseline = abs(xDistToBaseline / dxBall)
             
-            #Positive 'dy' Value
-            if (dyBall > 0):
-                yDistToTop = 290 - yCorBall
-                yTimeToTop = yDistToTop / dyBall
-                
-                if (yTimeToTop < xTimeToRightBorder):
-                    xTimeToRightBorder -= yTimeToTop
-                    
-                    yTimeToCrossHalfOfField = 290 / abs(dyBall)
-                    ratio = xTimeToRightBorder / yTimeToCrossHalfOfField
-                    wholeRatio = int(ratio)
-                    
-                    timeLeft = xTimeToRightBorder - (yTimeToCrossHalfOfField * wholeRatio)
-                    
-                    numBounces = int(wholeRatio / 2) + 1
-                    
-                    wholeRatiosAfterLastBounce = wholeRatio - (2 * (numBounces - 1))
-                    
-                    if (numBounces % 2 > 0):
-                        ballScoreYCor = 290 - (wholeRatiosAfterLastBounce * 290) - (timeLeft * dyBall)
-                        
-                    else:
-                        ballScoreYCor = -290 + (wholeRatiosAfterLastBounce * 290) + (timeLeft * dyBall)
-          
-                elif (xTimeToRightBorder < yTimeToTop): 
-                    ballScoreYCor = yCorBall + (dyBall * xTimeToRightBorder)
-            
-            #Negative 'dy' Value
-            if (dyBall < 0):
-                yDistToBottom = -290 - yCorBall
-                yTimeToBottom = yDistToBottom / dyBall
-                
-                if (yTimeToBottom < xTimeToRightBorder):
-                    xTimeToRightBorder -= yTimeToBottom
-                    
-                    yTimeToCrossHalfOfField = 290 / abs(dyBall)
-                    ratio = xTimeToRightBorder / yTimeToCrossHalfOfField
-                    wholeRatio = int(ratio)
-                    
-                    timeLeft = xTimeToRightBorder - (yTimeToCrossHalfOfField * wholeRatio)
-                    
-                    numBounces = int(wholeRatio / 2) + 1
-                    
-                    wholeRatiosAfterLastBounce = wholeRatio - (2 * (numBounces - 1))
-                    
-                    if (numBounces % 2 > 0):
-                        ballScoreYCor = -290 + (wholeRatiosAfterLastBounce * 290) + (timeLeft * abs(dyBall))
-                        
-                    else:
-                        ballScoreYCor = 290 - (wholeRatiosAfterLastBounce * 290) - (timeLeft * abs(dyBall))
-          
-                elif (xTimeToRightBorder < yTimeToBottom): 
-                    ballScoreYCor = yCorBall - (abs(dyBall) * xTimeToRightBorder)
+        if (dyBall > 0):
+            yCorSideline = 290
         
-        if (dxBall < 0):
-            ballScoreXCor = 0
-            ballScoreYCor = 0
+        elif (dyBall < 0):
+            yCorSideline = -290
+        
+        yDistToSideline = yCorSideline - yCorBall
+        yTimeToSideline = abs(yDistToSideline / dyBall)
+    
+        if (xTimeToBaseline < yTimeToSideline): 
+            ballScoreYCor = yCorBall + (xTimeToBaseline * dyBall)
+    
+        elif (xTimeToBaseline > yTimeToSideline):
+            xTimeToBaseline -= yTimeToSideline
+                
+            yTimeToCrossHalfOfField = abs(290 / dyBall)
+            ratio = xTimeToBaseline / yTimeToCrossHalfOfField
+            wholeRatio = int(ratio)
+                
+            timeLeft = xTimeToBaseline - (yTimeToCrossHalfOfField * wholeRatio)
+                
+            numBounces = int(wholeRatio / 2) + 1
+                
+            wholeRatiosAfterLastBounce = wholeRatio - (2 * (numBounces - 1))
+                
+            if ((numBounces % 2 > 0 and dyBall > 0) or (numBounces % 2 == 0 and dyBall < 0)):
+                ballScoreYCor = 290 - (wholeRatiosAfterLastBounce * 290) - abs(timeLeft * dyBall)
+                    
+            elif ((numBounces % 2 > 0 and dyBall < 0) or (numBounces % 2 == 0 and dyBall > 0)):
+                ballScoreYCor = -290 + (wholeRatiosAfterLastBounce * 290) + abs(timeLeft * dyBall)
 
 
 # In[23]:
 
 
-def predictiveOpponentAI(pB):    
+#Control's the AI Paddles
+#As the AI always correctly predict's the ball's path, with 0 players the same ball movement repeats infinitely
+def predictiveOpponentAI(bl, bH, pA, pB, nP):    
+    xCorBall = bl.xcor()
+    yCorBall = bl.ycor()
+    
     xCorPB = pB.xcor()
     yCorPB = pB.ycor()
     
-    #Control's the AI Paddles
-    if (ballScoreYCor > (yCorPB + 50)):
-        paddleBUp()
+    if (xCorBall > 0 and bH == 0):
+        
+        if (ballScoreYCor > (yCorPB + 50)):
+            paddleBUp()
+
+        elif (ballScoreYCor < (yCorPB - 50)):
+            paddleBDown()
+               
+    if (bH == 1):
+        
+        if (yCorPB < 0):
+            paddleBUp()
+            
+        elif (yCorPB > 0):
+            paddleBDown()
+        
+    if (nP == 0):
+        
+        xCorPA = pA.xcor()
+        yCorPA = pA.ycor()
+            
+        if (xCorBall < 0 and bH == 1):
+        
+            if (ballScoreYCor > (yCorPA + 50)):
+                paddleAUp()
     
-    elif (ballScoreYCor < (yCorPB - 50)):
-        paddleBDown()
+            elif (ballScoreYCor < (yCorPA - 50)):
+                paddleADown()  
+                
+        if (bH == 0):
+            
+            if (yCorPA < 0):
+                paddleAUp()
+            
+            elif (yCorPA > 0):
+                paddleADown()
 
 
 # In[24]:
@@ -606,10 +615,13 @@ gameMode = gameWindow.numinput('GameModeSelection', 'Which Game Mode: Classic or
 gameType.clear()
 
 #AI Mode
+typeAI = genText(0, 'white', 0, 0, 'Which AI Mode: Simple or Predictive\nPress: "0" or "1"', 
+                 'center', ('Courier', 24, 'normal'))
+
 modeAI = gameWindow.numinput('AIModeSelection', 'Which AI Mode: Simple or Predictive?', 
                              0, minval = 0, maxval = 1)
 
-gameType.clear()
+typeAI.clear()
 
 
 # In[26]:
@@ -732,7 +744,7 @@ while (running):
                 predictBallMovement(ball)
                 speedPAI -= 1
                 if (speedPAI == 0):
-                    predictiveOpponentAI(paddleB)
+                    predictiveOpponentAI(ball, ballHit, paddleA, paddleB, numPlayers)
                     speedPAI = 26
                     
     gameWindow.update()
