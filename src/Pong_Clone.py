@@ -294,7 +294,8 @@ def borderChecking(bl):
             score2 += 1
             setBallSpeed(defaultBallSpeed)
         
-        os.system('afplay AirPlaneDing.mp3&')
+        #os.system('afplay AirPlaneDing.mp3&')
+        os.system('mpg123 AirPlaneDing.mp3&')
         
         bl.goto(0, 0)
         #randomizeBallServe(bl)
@@ -331,7 +332,8 @@ def paddleBallCollision(bl, bH, pA, pAS, pB, pBS):
         #bH = 1
         ballHit = 1
         resultingCollisionAngle(bl, yCorBall, yCorPB)
-        os.system('afplay ButtonClickOff.mp3&')
+        #os.system('afplay ButtonClickOff.mp3&') # For Mac OS X
+        os.system('mpg123 ButtonClickOff.mp3&') # For Linux
         
     #Left Paddle
     if ((yCorBall >= yCorPA - 50 and yCorBall <= yCorPA + 50) and 
@@ -342,7 +344,8 @@ def paddleBallCollision(bl, bH, pA, pAS, pB, pBS):
         #bH = 0
         ballHit = 0
         resultingCollisionAngle(bl, yCorBall, yCorPA)
-        os.system('afplay ButtonClickOn.mp3&')
+        #os.system('afplay ButtonClickOn.mp3&')
+        os.system('mpg123 ButtonClickOff.mp3&')
         
     limitBallSpeed(bl)
 
