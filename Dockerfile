@@ -2,12 +2,15 @@ FROM ubuntu:21.04
 
 WORKDIR /code
 
-COPY requirements.txt .
+#COPY requirements.txt .
 
 RUN apt-get update && apt-get install -y \
     python3.9 \
-    -r requirements.txt
+    python3-tk \
+    alsa-utils \
+    mpg123
 
 COPY src/ .
 
-CMD [ "python", "./Pong_Clone.py" ]
+CMD [ "python3.9", "./Pong_Clone.py" ]
+#CMD ["/usr/bin/xclock"]

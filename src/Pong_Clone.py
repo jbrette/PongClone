@@ -273,7 +273,8 @@ def playSound(soundFile):
     systemType = platform.system()
     
     if (systemType == 'Linux' or systemType == 'Linux2'): # Linux
-        os.system('aplay ' + sound)
+        #os.system('aplay ' + sound) # aplay made for wav files, not mp3
+        os.system('mpg123 ' + sound) # Use mpg123 for mp3 files
         
     elif (systemType == 'Darwin'): # Mac OS X
         os.system('afplay ' + sound)
