@@ -275,10 +275,10 @@ def playSound(soundFile):
     print(systemType)
     
     if (systemType == 'Linux' or systemType == 'Linux2'): # Linux
-        os.system('aplay ' + soundFile)
+        os.system('aplay ' + sound)
         
     elif (systemType == 'Darwin'): # Mac OS X
-        os.system('afplay ' + soundFile)
+        os.system('afplay ' + sound)
         
     elif (systemType == 'Windows'): # Windows
         #winsound.PlaySound(soundFile, winsound.SND_ASYNC)
