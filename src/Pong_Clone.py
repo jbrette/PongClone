@@ -13,6 +13,8 @@
 import turtle #Used for simple games in python
 import random
 import os
+import platform
+#import winsound
 
 
 # In[3]:
@@ -266,6 +268,26 @@ def randomizeBallServe(bl):
 # In[15]:
 
 
+def playSound(soundFile):
+    sound = str(soundFile + '&')
+    systemType = platform.system()
+    print(sound)
+    print(systemType)
+    
+    if (systemType == 'Linux' or systemType == 'Linux2'): # Linux
+        os.system('aplay ' + soundFile)
+        
+    elif (systemType == 'Darwin'): # Mac OS X
+        os.system('afplay ' + soundFile)
+        
+    elif (systemType == 'Windows'): # Windows
+        #winsound.PlaySound(soundFile, winsound.SND_ASYNC)
+        print('Currently non functional.')
+
+
+# In[16]:
+
+
 #Screen Border Checking
 def borderChecking(bl):
     global score1
@@ -294,8 +316,7 @@ def borderChecking(bl):
             score2 += 1
             setBallSpeed(defaultBallSpeed)
         
-        #os.system('afplay AirPlaneDing.mp3&')
-        os.system('mpg123 AirPlaneDing.mp3&')
+        playSound('AirPlaneDing.mp3')
         
         bl.goto(0, 0)
         #randomizeBallServe(bl)
@@ -307,7 +328,7 @@ def borderChecking(bl):
     limitBallSpeed(bl)
 
 
-# In[16]:
+# In[17]:
 
 
 #Determines Paddle & Ball Collisions
@@ -332,8 +353,7 @@ def paddleBallCollision(bl, bH, pA, pAS, pB, pBS):
         #bH = 1
         ballHit = 1
         resultingCollisionAngle(bl, yCorBall, yCorPB)
-        #os.system('afplay ButtonClickOff.mp3&') # For Mac OS X
-        os.system('mpg123 ButtonClickOff.mp3&') # For Linux
+        playSound('ButtonClickOff.mp3')
         
     #Left Paddle
     if ((yCorBall >= yCorPA - 50 and yCorBall <= yCorPA + 50) and 
@@ -344,13 +364,12 @@ def paddleBallCollision(bl, bH, pA, pAS, pB, pBS):
         #bH = 0
         ballHit = 0
         resultingCollisionAngle(bl, yCorBall, yCorPA)
-        #os.system('afplay ButtonClickOn.mp3&')
-        os.system('mpg123 ButtonClickOff.mp3&')
+        playSound('ButtonClickOn.mp3')
         
     limitBallSpeed(bl)
 
 
-# In[17]:
+# In[18]:
 
 
 #Prevents the Ball from glitching through a paddle moving towards it
@@ -371,7 +390,7 @@ def paddleBallMoveCollision(bl, pA, pB):
         bl.setx(xCorPA + 60)
 
 
-# In[18]:
+# In[19]:
 
 
 #Adjust the angle of the ball's trajectory depending on where it struck along the paddle's length
@@ -388,7 +407,7 @@ def resultingCollisionAngle(bl, bYCor, pYCor):
     #    bl.dy *= 0 
 
 
-# In[19]:
+# In[20]:
 
 
 def pauseGame():
@@ -403,7 +422,7 @@ def pauseGame():
         pauseMessage = genText(0, 'white', 0, 0, '  Game  Paused', 'center', ('Courier', 24, 'normal'))
 
 
-# In[20]:
+# In[21]:
 
 
 #Allows players to end and quit the game without errors
@@ -412,7 +431,7 @@ def exitGame():
     running = False
 
 
-# In[21]:
+# In[22]:
 
 
 #Creates a Very Simple Player 0 AI
@@ -472,7 +491,7 @@ def simpleOpponentAI(bl, bH, pB, pA, nP, gM):
                 paddleALeft()
 
 
-# In[22]:
+# In[23]:
 
 
 #Accurately predict's the ball's path; currently only functions for classic mode
@@ -530,7 +549,7 @@ def predictBallMovement(bl):
                 ballScoreYCor = -290 + (wholeRatiosAfterLastBounce * 290) + abs(timeLeft * dyBall)
 
 
-# In[23]:
+# In[24]:
 
 
 #Control's the AI Paddles
@@ -580,7 +599,7 @@ def predictiveOpponentAI(bl, bH, pA, pB, nP):
                 paddleADown()
 
 
-# In[24]:
+# In[25]:
 
 
 #Initiates the game environment
@@ -597,7 +616,7 @@ ballScoreXCor = 0
 ballScoreYCor = 0
 
 
-# In[25]:
+# In[26]:
 
 
 #Main Menu
@@ -627,7 +646,7 @@ modeAI = gameWindow.numinput('AIModeSelection', 'Which AI Mode: Simple or Predic
 typeAI.clear()
 
 
-# In[26]:
+# In[27]:
 
 
 #Sets up the game environment    
@@ -683,7 +702,7 @@ exitInstructions = genText(0, 'white', 0, -280, 'To pause the game press: "p"  '
                            'right', ('Courier', 10, 'normal'))
 
 
-# In[27]:
+# In[28]:
 
 
 def playerControlsSwitch(nP, gM):
@@ -712,7 +731,7 @@ def playerControlsSwitch(nP, gM):
             gameWindow.onkeypress(weakerPaddleASwing, 'l')
 
 
-# In[28]:
+# In[29]:
 
 
 #Keyboard Binding
@@ -725,7 +744,7 @@ gameWindow.onkeypress(pauseGame, 'p')
 gameWindow.onkeypress(exitGame, 'q')
 
 
-# In[29]:
+# In[ ]:
 
 
 #Main Game Loop
@@ -753,7 +772,7 @@ while (running):
     gameWindow.update()
 
 
-# In[30]:
+# In[ ]:
 
 
 turtle.done()
