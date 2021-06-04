@@ -271,8 +271,6 @@ def randomizeBallServe(bl):
 def playSound(soundFile):
     sound = str(soundFile + '&')
     systemType = platform.system()
-    print(sound)
-    print(systemType)
     
     if (systemType == 'Linux' or systemType == 'Linux2'): # Linux
         os.system('aplay ' + sound)
