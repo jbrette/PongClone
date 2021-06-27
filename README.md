@@ -16,3 +16,5 @@ Also has a secondary 'Advanced' mode where the paddles may also move left and ri
 # Docker Command Line Startup Sequence
 
 docker run -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --device /dev/snd --priveleged=true xnonr/pongclone
+
+# Testing
