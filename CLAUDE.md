@@ -29,7 +29,7 @@ docker buildx build --load -t pongclone .
 docker run -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --device /dev/snd --privileged=true pongclone
 ```
 
-`.travis.yml` builds and pushes `$DOCKER_NAMESPACE/pongclone` in one `docker buildx build --push` step. The version is hardcoded as `0.3`, matching `pyproject.toml`. A test stage then only checks that the container starts; with no `DISPLAY` the game exits immediately, so that check currently fails.
+CI is GitHub Actions (`.github/workflows/docker.yml`), run on every push and PR. It builds the image with buildx, then starts it against an Xvfb display and checks that the container is still running after 5 seconds (the game blocks on its first setup prompt). On pushes it then pushes `$DOCKER_NAMESPACE/pongclone` to Docker Hub, but only if the `DOCKER_USERNAME`/`DOCKER_PASSWORD` secrets and the `DOCKER_NAMESPACE` variable are set. The version is hardcoded as `0.3`, matching `pyproject.toml`.
 
 ## Architecture
 
