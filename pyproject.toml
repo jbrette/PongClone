@@ -1,0 +1,11 @@
+[project]
+name = "pongclone"
+version = "0.3"
+description = "A clone of the 1972 Atari game Pong, built on Python's turtle module."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
+
+[tool.uv]
+# Homebrew and some distro Pythons ship without _tkinter; uv-managed builds include it.
+python-preference = "only-managed"

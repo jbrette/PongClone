@@ -1,6 +1,6 @@
 # PongClone
 
-A simple clone program of the original 1972 Atari game Pong written and coded in Python 3.7.4 with Jupyter Notebook.
+A simple clone program of the original 1972 Atari game Pong written and coded in Python with Jupyter Notebook. Requires Python 3.14 and is managed with [uv](https://docs.astral.sh/uv/).
 
 Currently makes use of the 'turtle', 'random' and 'os' Python modules.
 
@@ -13,8 +13,13 @@ There are 2 AI modes so far:
 
 Also has a secondary 'Advanced' mode where the paddles may also move left and right.
 
+# Running Locally
+
+    cd src && uv run Pong_Clone.py
+
 # Docker Command Line Startup Sequence
 
-docker run -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --device /dev/snd --priveleged=true xnonr/pongclone
+    docker buildx build --load -t pongclone .
+    docker run -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --device /dev/snd --privileged=true pongclone
 
 # Testing

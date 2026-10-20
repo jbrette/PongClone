@@ -509,9 +509,9 @@ def predictBallMovement(bl):
     
     if (abs(xCorBall) < 5):
         if (dxBall > 0):
-            xCorBasline = 350
+            xCorBaseline = 350
         elif (dxBall < 0):
-            xCorBasline = -350
+            xCorBaseline = -350
          
         xDistToBaseline = xCorBaseline - xCorBall
         xTimeToBaseline = abs(xDistToBaseline / dxBall)
@@ -726,8 +726,8 @@ def playerControlsSwitch(nP, gM):
             gameWindow.onkeypress(paddleBLeft, 'Left')
             gameWindow.onkeypress(paddleBRight, 'Right')
                     
-            gameWindow.onkeypress(strongerPaddleASwing, 'o')
-            gameWindow.onkeypress(weakerPaddleASwing, 'l')
+            gameWindow.onkeypress(strongerPaddleBSwing, 'o')
+            gameWindow.onkeypress(weakerPaddleBSwing, 'l')
 
 
 # In[29]:

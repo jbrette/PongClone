@@ -1,24 +1,28 @@
-sudo: true
+dist: jammy
 
-service:
+services:
   - docker
 
 install: true
+
+env:
+  global:
+    - VERSION=0.3
+    - DMAINREPO=$DOCKER_NAMESPACE/pongclone
 
 jobs:
   include:
     - stage: build docker image
       script:
-      - export DMAINREPO=$DOCKER_NAMESPACE/pongclone
-      - export VERSION=0.3
       - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      - docker build -t $DMAINREPO:$VERSION -f Dockerfile .
-      - docker tag $DMAINREPO:$VERSION $DMAINREPO:latest
-      - docker tag $DMAINREPO:$VERSION $DMAINREPO:travis-$TRAVIS_BUILD_NUMBER
-      - docker push $DMAINREPO
+      - docker buildx create --use --name pongclone-builder
+      - >-
+        docker buildx build --push
+        --tag $DMAINREPO:$VERSION
+        --tag $DMAINREPO:latest
+        --tag $DMAINREPO:travis-$TRAVIS_BUILD_NUMBER
+        --file Dockerfile .
     - stage: test docker image
       script:
-      - export DMAINREPO=$DOCKER_NAMESPACE/pongclone
-      - export VERSION=0.3
       - docker run -d --name test_pongclone $DMAINREPO:$VERSION
       - docker ps | grep -q test_pongclone

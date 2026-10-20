@@ -1,16 +1,21 @@
-FROM ubuntu:latest
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim
 
-WORKDIR /code
-
-#COPY requirements.txt .
-
-RUN apt-get update && apt-get install -y \
-    python3.9 \
-    python3-tk \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     alsa-utils \
-    mpg123
+    mpg123 \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY src/ .
+WORKDIR /app
 
-CMD [ "python3.9", "./Pong_Clone.py" ]
-#CMD ["/usr/bin/xclock"]
+ENV UV_NO_DEV=1 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PYTHON_PREFERENCE=only-system
+
+COPY pyproject.toml uv.lock .python-version README.md ./
+RUN uv sync --locked
+
+COPY src/ ./src/
+
+# Sound files are referenced by relative path, so run from src/.
+WORKDIR /app/src
+CMD [ "uv", "run", "--locked", "--no-sync", "Pong_Clone.py" ]
