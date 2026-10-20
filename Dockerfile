@@ -2,6 +2,7 @@ FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     alsa-utils \
+    libtk8.6 \
     mpg123 \
     && rm -rf /var/lib/apt/lists/*
 

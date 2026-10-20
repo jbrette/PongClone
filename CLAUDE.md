@@ -22,18 +22,18 @@ Linux/WSL needs an X display (see `notes` for the WSL `DISPLAY` export).
 
 ## Docker / CI
 
-The `Dockerfile` is based on `ghcr.io/astral-sh/uv:python3.14-trixie-slim` and adds alsa-utils and mpg123. It runs `uv sync --locked`, then runs the script from `/app/src` with `uv run`. It sets `UV_PYTHON_PREFERENCE=only-system` to override the pyproject setting and use the image's Python. Running it needs host X11 and sound passthrough:
+The `Dockerfile` is based on `ghcr.io/astral-sh/uv:python3.14-trixie-slim` and adds alsa-utils, mpg123 and `libtk8.6` (the slim image lacks Tk's shared library, so `import tkinter` fails without it). It runs `uv sync --locked`, then runs the script from `/app/src` with `uv run`. It sets `UV_PYTHON_PREFERENCE=only-system` to override the pyproject setting and use the image's Python. Running it needs host X11 and sound passthrough:
 
 ```
 docker buildx build --load -t pongclone .
 docker run -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --device /dev/snd --privileged=true pongclone
 ```
 
-`.travis.yml` builds and pushes `$DOCKER_NAMESPACE/pongclone` in one `docker buildx build --push` step. The version is hardcoded as `0.3`, matching `pyproject.toml`. A test stage then only checks that the container starts.
+`.travis.yml` builds and pushes `$DOCKER_NAMESPACE/pongclone` in one `docker buildx build --push` step. The version is hardcoded as `0.3`, matching `pyproject.toml`. A test stage then only checks that the container starts; with no `DISPLAY` the game exits immediately, so that check currently fails.
 
 ## Architecture
 
-All state is module-level globals (`ball`, `paddleA`, `paddleB`, `score1/2`, `pause`, `running`, `ballHit`, `numPlayers`, `gameMode`, `modeAI`, ...), mutated through `global` declarations. Top-level statements run in order: create the window, ask the menu dialogs, create turtle objects and HUD text, bind `p`/`q`, then enter a manual `while running:` loop that calls `gameWindow.update()` each frame (`tracer(0)` disables auto-refresh).
+All state is module-level globals (`ball`, `paddleA`, `paddleB`, `score1/2`, `pause`, `running`, `ballHit`, `numPlayers`, `gameMode`, `modeAI`, ...), mutated through `global` declarations. Top-level statements run in order: create the window, ask the menu dialogs, create turtle objects and HUD text, bind `p`/`q`, then enter a manual `while running:` loop that calls `gameWindow.update()` each frame, then sleeps to cap the loop at `FPS` (default 120). All movement and the AI counters are per frame, so `FPS` sets the game speed (`tracer(0)` disables auto-refresh).
 
 Each unpaused frame: `playerControlsSwitch` (re-binds keys every frame based on player count/mode), `moveBall`, `borderChecking` (wall bounce, scoring, ball reset), `paddleBallCollision` (reverses `dx` scaled by swing strength, adjusts `dy` via `resultingCollisionAngle`), then the AI if fewer than two humans. `limitBallSpeed` clamps `dx`/`dy` to roughly 0.5–3.
 

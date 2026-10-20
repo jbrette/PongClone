@@ -14,6 +14,7 @@ import turtle #Used for simple games in python
 import random
 import os
 import platform
+import time
 #import winsound
 
 
@@ -611,6 +612,10 @@ pauseMessage = genText(0, 'white', 0, 0, '', 'center', ('Courier', 24, 'normal')
 speedSAI = 26
 speedPAI = 26
 
+#Caps the main loop so game speed no longer depends on CPU speed; lower = slower game
+FPS = 120
+frameTime = 1 / FPS
+
 ballScoreXCor = 0
 ballScoreYCor = 0
 
@@ -748,7 +753,8 @@ gameWindow.onkeypress(exitGame, 'q')
 
 #Main Game Loop
 while (running):
-    
+    frameStart = time.perf_counter()
+
     if (pause == False):
         playerControlsSwitch(numPlayers, gameMode)
         moveBall(ball)
@@ -767,8 +773,9 @@ while (running):
                 if (speedPAI == 0):
                     predictiveOpponentAI(ball, ballHit, paddleA, paddleB, numPlayers)
                     speedPAI = 26
-                    
+
     gameWindow.update()
+    time.sleep(max(0, frameTime - (time.perf_counter() - frameStart)))
 
 
 # In[ ]:
